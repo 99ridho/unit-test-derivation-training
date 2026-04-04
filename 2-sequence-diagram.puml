@@ -1,0 +1,49 @@
+@startuml
+
+actor "Mahasiswa" as student
+participant ": CourseSelectionPage" as courseSelectionPage
+participant ": CourseEnrollmentService" as courseEnrollmentService
+participant ": Student" as studentEnt
+participant ": StudyPlan" as studyPlanEnt
+
+student -> courseSelectionPage : selectCourse(courseOffering)
+courseSelectionPage -> courseEnrollmentService : enrollCourseForStudent(courseOffering, studentID)
+courseEnrollmentService -> studentEnt : getBy(studentID)
+studentEnt -->> courseEnrollmentService : student
+courseEnrollmentService -> courseEnrollmentService : checkIsWithinEnrollmentPeriod(semesterID)
+
+break period_out_of_range
+    courseEnrollmentService -->> courseSelectionPage : message = "masa pengisian telah berakhir atau belum dimulai"
+end
+
+courseEnrollmentService -> studentEnt : getAllPreviouslyEnrolledCourses()
+studentEnt -->> courseEnrollmentService : enrolledCourses
+courseEnrollmentService -> courseEnrollmentService : checkPrerequisite(course, enrolledCourses)
+
+break prerequisite_course_not_enrolled
+    courseEnrollmentService -->> courseSelectionPage : message = "mata kuliah prasyarat belum diambil"
+end
+
+courseEnrollmentService -> studentEnt : getStudyPlan(semesterID)
+studentEnt --> courseEnrollmentService : studyPlan
+courseEnrollmentService -> studyPlanEnt : getTotalCredit()
+studyPlanEnt -->> courseEnrollmentService : totalCredit
+
+break totalCredit + creditEnrolled > maximumAllowed
+    courseEnrollmentService -->> courseSelectionPage : message = "SKS sudah mencapai batas maksimal"
+end
+
+courseEnrollmentService -> courseEnrollmentService : checkScheduleConflictsOnStudyPlan(courseOffering, studyPlan)
+
+break schedule_conflicts
+    courseEnrollmentService -->> courseSelectionPage : message = "ada jadwal yang konflik, silakan pilih mata kuliah pada jadwal yang lain"
+end
+
+courseEnrollmentService -> studentEnt : enroll(couseOffering)
+studentEnt -> studyPlanEnt : insert(courseOffering, studentID)
+studyPlanEnt -->> studentEnt : ok
+studentEnt -->> courseEnrollmentService : ok
+
+courseEnrollmentService -->> courseSelectionPage : message = "mata kuliah telah ditambahkan pada KRS"
+
+@enduml

@@ -1,0 +1,40 @@
+class CourseEnrollmentService {
+    // courseOffering = {semesterID, course}
+    function enrollCourseForStudent(courseOffering, studentID) {
+        student = Student.getBy(studentID)
+        isWithinEnrollmentPeriod = checkIsWithinEnrollmentPeriod(courseOffering.semesterID)
+
+        if !isWithinEnrollmentPeriod {
+            return "masa pengisian telah berakhir atau belum dimulai"
+        }
+
+        previouslyEnrolledCourses = student.getAllPreviouslyEnrolledCourses()
+        isPrerequisiteEnrolled = checkPrerequisite(courseOffering.course, studentID)
+
+        if !isWithinEnrollmentPeriod {
+            return "mata kuliah prasyarat belum diambil"
+        }
+
+        studyPlan = student.getStudyPlan(courseOffering.semesterID)
+        totalCredit = studyPlan.getTotalCredit()
+
+        if totalCredit + courseOffering.course.credit > studyPlan.maximumAllowed {
+            return "SKS sudah mencapai batas maksimal"
+        }
+
+        anyConflicts = checkScheduleConflict(courseOffering, studyPlan)
+        
+        if anyConflicts {
+            return "ada jadwal yang konflik"
+        }
+
+        ok = student.enroll(courseOffering)
+
+        return "mata kuliah telah ditambahkan pada krs"
+    }
+}
+
+// CFG
+
+[1...4] -> 5 -> [7...9] -> end
+             -> [11...12] -> [14...16] -> end
