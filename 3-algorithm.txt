@@ -1,40 +1,36 @@
 class CourseEnrollmentService {
-    // courseOffering = {semesterID, course}
-    function enrollCourseForStudent(courseOffering, studentID) {
-        student = Student.getBy(studentID)
-        isWithinEnrollmentPeriod = checkIsWithinEnrollmentPeriod(courseOffering.semesterID)
-
-        if !isWithinEnrollmentPeriod {
-            return "masa pengisian telah berakhir atau belum dimulai"
-        }
-
-        previouslyEnrolledCourses = student.getAllPreviouslyEnrolledCourses()
-        isPrerequisiteEnrolled = checkPrerequisite(courseOffering.course, studentID)
-
-        if !isWithinEnrollmentPeriod {
-            return "mata kuliah prasyarat belum diambil"
-        }
-
-        studyPlan = student.getStudyPlan(courseOffering.semesterID)
-        totalCredit = studyPlan.getTotalCredit()
-
-        if totalCredit + courseOffering.course.credit > studyPlan.maximumAllowed {
-            return "SKS sudah mencapai batas maksimal"
-        }
-
-        anyConflicts = checkScheduleConflict(courseOffering, studyPlan)
+    function enrollCourseOfferingForStudent(courseOffering, student) {
+        isWithinPeriod = checkIsWithinPeriodForSemester(courseOffering.semesterID)
         
-        if anyConflicts {
-            return "ada jadwal yang konflik"
+        if !isWithinPeriod {
+            return "periode telah berakhir"
+        }
+
+        enrolledCourses = student.getAllEnrolledCourses()
+        prerequisiteFound = self.checkPrerequisite(courseOffering.course, enrolledCourses)
+        
+        if !prerequisiteFound {
+            return "MK prasyarat belum diambil"
+        }
+        
+        coursePlanSemester = student.getCoursePlan(courseOffering.semesterID)
+        maximumCreditLimit = coursePlanSemester.getMaximumCreditLimit()
+        totalCredit = coursePlanSemester.getTotalCredit()
+        limitExceeded = courseOffering.course.credit + totalCredit > maximumCreditLimit
+        
+        if limitExceeded {
+            return "SKS telah mencapai batas maksimal"
+        }
+
+        overlaps = self.checkAnyScheduleOverlap(courseOffering, coursePlanSemester)
+        overlapFound = overlap.length > 0
+
+        if overlapFound {
+            return "ada jadwal conflict"
         }
 
         ok = student.enroll(courseOffering)
 
-        return "mata kuliah telah ditambahkan pada krs"
+        return "MK telah ditambahkan pada KRS"
     }
 }
-
-// CFG
-
-[1...4] -> 5 -> [7...9] -> end
-             -> [11...12] -> [14...16] -> end

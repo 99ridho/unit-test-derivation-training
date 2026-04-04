@@ -4,46 +4,53 @@ actor "Mahasiswa" as student
 participant ": CourseSelectionPage" as courseSelectionPage
 participant ": CourseEnrollmentService" as courseEnrollmentService
 participant ": Student" as studentEnt
-participant ": StudyPlan" as studyPlanEnt
+participant ": CoursePlan" as coursePlanEnt
 
-student -> courseSelectionPage : selectCourse(courseOffering)
-courseSelectionPage -> courseEnrollmentService : enrollCourseForStudent(courseOffering, studentID)
-courseEnrollmentService -> studentEnt : getBy(studentID)
-studentEnt -->> courseEnrollmentService : student
-courseEnrollmentService -> courseEnrollmentService : checkIsWithinEnrollmentPeriod(semesterID)
+student -> courseSelectionPage : selectCourseOffering(courseOffering)
+activate courseSelectionPage
+courseSelectionPage -> courseEnrollmentService : enrollCourseOfferingForStudent(courseOffering, student)
+activate courseEnrollmentService
+courseEnrollmentService -> courseEnrollmentService : checkIsWithinPeriodForSemester(courseOffering.semesterID)
 
-break period_out_of_range
-    courseEnrollmentService -->> courseSelectionPage : message = "masa pengisian telah berakhir atau belum dimulai"
+break not_within_period_for_semester
+    courseEnrollmentService -->> courseSelectionPage : message = "periode telah berakhir atau belum dimulai"
 end
 
-courseEnrollmentService -> studentEnt : getAllPreviouslyEnrolledCourses()
+courseEnrollmentService -> studentEnt : getAllEnrolledCourses()
+activate studentEnt
 studentEnt -->> courseEnrollmentService : enrolledCourses
-courseEnrollmentService -> courseEnrollmentService : checkPrerequisite(course, enrolledCourses)
 
-break prerequisite_course_not_enrolled
-    courseEnrollmentService -->> courseSelectionPage : message = "mata kuliah prasyarat belum diambil"
+courseEnrollmentService -> courseEnrollmentService : checkPrerequisite(courseOffering.course, enrolledCourses)
+
+break prerequisite_not_found_on_enrolled_courses
+    courseEnrollmentService -->> courseSelectionPage : message = "MK prasyarat belum diambil, silakan mengambil prasyarat dahulu"
 end
 
-courseEnrollmentService -> studentEnt : getStudyPlan(semesterID)
-studentEnt --> courseEnrollmentService : studyPlan
-courseEnrollmentService -> studyPlanEnt : getTotalCredit()
-studyPlanEnt -->> courseEnrollmentService : totalCredit
+courseEnrollmentService -> studentEnt : getCoursePlan(semesterID)
+studentEnt -->> courseEnrollmentService : coursePlanSemester
+courseEnrollmentService -> coursePlanEnt : getMaximumCreditLimit()
+activate coursePlanEnt
+coursePlanEnt -->> courseEnrollmentService : maximumCreditLimit
+courseEnrollmentService -> coursePlanEnt : getTotalCredit()
+coursePlanEnt -->> courseEnrollmentService : totalCredit
 
-break totalCredit + creditEnrolled > maximumAllowed
-    courseEnrollmentService -->> courseSelectionPage : message = "SKS sudah mencapai batas maksimal"
+break courseOffering.course.credit + totalCredit > maximumCreditLimit
+    courseEnrollmentService -->> courseSelectionPage : message = "SKS yang telah diambil telah mencapai batas maksimal"
 end
 
-courseEnrollmentService -> courseEnrollmentService : checkScheduleConflictsOnStudyPlan(courseOffering, studyPlan)
+courseEnrollmentService -> courseEnrollmentService : checkAnyScheduleOverlap(courseOffering, coursePlanSemester)
 
-break schedule_conflicts
-    courseEnrollmentService -->> courseSelectionPage : message = "ada jadwal yang konflik, silakan pilih mata kuliah pada jadwal yang lain"
+break any_overlap_found
+    courseEnrollmentService -->> courseSelectionPage : message = "ada jadwal yang konflik, silakan pilih jadwal yang lain"
 end
 
-courseEnrollmentService -> studentEnt : enroll(couseOffering)
-studentEnt -> studyPlanEnt : insert(courseOffering, studentID)
-studyPlanEnt -->> studentEnt : ok
+courseEnrollmentService -> studentEnt : enroll(courseOffering)
+studentEnt -> coursePlanEnt : insert(courseOffering, student.id)
+coursePlanEnt -->> studentEnt : ok
+deactivate coursePlanEnt
 studentEnt -->> courseEnrollmentService : ok
+deactivate studentEnt
 
-courseEnrollmentService -->> courseSelectionPage : message = "mata kuliah telah ditambahkan pada KRS"
+courseEnrollmentService -->> courseSelectionPage : message = "MK telah ditambahkan pada KRS"
 
 @enduml
