@@ -1,16 +1,16 @@
-# Use Case Description
+# Use Case Description: Penambahan Mata Kuliah ke KRS
 
 ## Normal flow
 
-1. Mahasiswa memilih satu mata kuliah yang akan ditempuh
-2. Sistem memproses pemilihan mata kuliah
-3. Sistem melakukan pengecekan periode pengisian KRS, prasyarat mata kuliah, batas maksimal KRS serta konflik jadwal secara sekuensial
-4. Sistem menambahkan mata kuliah terpilih kedalam KRS
-5. Mahasiswa mendapatkan pesan konfirmasi bahwa mata kuliah telah ditambahkan pada KRS
+1. Mahasiswa memilih mata kuliah yang ditawarkan pada semester yang akan berjalan
+2. Sistem menerima pemilihan mata kuliah yang dikirimkan oleh mahasiswa
+3. Sistem melakukan validasi berikut secara berurutan: periode pengisian KRS, pemenuhan prasyarat, total SKS setelah dijumlah dengan SKS MK yang dipilih, dan mendeteksi konflik jadwal terhadap MK yang telah terdaftar pada KRS
+4. Sistem mencatat mata kuliah terpilih pada KRS mahasiswa
+5. Mahasiswa mendapatkan pesan bahwa MK telah ditambahkan pada KRS
 
 ## Alternate flow
 
-1. Jika dilakukan diluar periode pengisian, maka sistem memberikan pesan “masa pengisian telah berakhir atau belum dimulai”
-2. Jika mata kuliah prasyarat belum diambil, maka sistem memberikan pesan “harus menempuh mata kuliah prasyarat sebelum mengambil mata kuliah ini”
-3. Jika total SKS setelah penambahan mata kuliah melebihi batas, maka sistem memberikan pesan “SKS sudah mencapai batas maksimal”
-4. Jika adanya konflik jadwal dengan mata kuliah yang telah diambil pada KRS, maka sistem memberikan pesan “ada jadwal yang konflik, silakan pilih mata kuliah pada jadwal yang lain”
+1. Jika waktu saat ini diluar periode pengisian KRS, maka mahasiswa akan mendapatkan pesan "periode telah berakhir atau belum dimulai"
+2. Jika mahasiswa belum mengambil MK prasyarat sebelumnya, maka mahasiswa akan mendapatkan pesan "MK prasyarat belum diambil, silakan mengambil prasyarat dahulu"
+3. Jika SKS semester mahasiswa telah mencapai batas maksimal pada semester tersebut, maka mahasiswa akan mendapatkan pesan "SKS yang telah diambil telah mencapai batas maksimal"
+4. Jika ternyata ditemukan konflik jadwal dengan MK pada KRS, maka mahasiswa akan mendapat pesan "ada jadwal yang konflik, silakan pilih jadwal yang lain"
