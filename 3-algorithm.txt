@@ -1,0 +1,36 @@
+class CourseEnrollmentService {
+    function enrollCourseOfferingForStudent(courseOffering, student) {
+        isWithinPeriod = checkIsWithinPeriodForSemester(courseOffering.semesterID)
+        
+        if !isWithinPeriod {
+            return "periode telah berakhir"
+        }
+
+        enrolledCourses = student.getAllEnrolledCourses()
+        prerequisiteFound = self.checkPrerequisite(courseOffering.course, enrolledCourses)
+        
+        if !prerequisiteFound {
+            return "MK prasyarat belum diambil"
+        }
+        
+        coursePlanSemester = student.getCoursePlan(courseOffering.semesterID)
+        maximumCreditLimit = coursePlanSemester.getMaximumCreditLimit()
+        totalCredit = coursePlanSemester.getTotalCredit()
+        limitExceeded = courseOffering.course.credit + totalCredit > maximumCreditLimit
+        
+        if limitExceeded {
+            return "SKS telah mencapai batas maksimal"
+        }
+
+        overlaps = self.checkAnyScheduleOverlap(courseOffering, coursePlanSemester)
+        overlapFound = overlap.length > 0
+
+        if overlapFound {
+            return "ada jadwal conflict"
+        }
+
+        ok = student.enroll(courseOffering)
+
+        return "MK telah ditambahkan pada KRS"
+    }
+}

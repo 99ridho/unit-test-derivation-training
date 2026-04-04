@@ -1,0 +1,56 @@
+@startuml
+
+actor "Mahasiswa" as student
+participant ": CourseSelectionPage" as courseSelectionPage
+participant ": CourseEnrollmentService" as courseEnrollmentService
+participant ": Student" as studentEnt
+participant ": CoursePlan" as coursePlanEnt
+
+student -> courseSelectionPage : selectCourseOffering(courseOffering)
+activate courseSelectionPage
+courseSelectionPage -> courseEnrollmentService : enrollCourseOfferingForStudent(courseOffering, student)
+activate courseEnrollmentService
+courseEnrollmentService -> courseEnrollmentService : checkIsWithinPeriodForSemester(courseOffering.semesterID)
+
+break not_within_period_for_semester
+    courseEnrollmentService -->> courseSelectionPage : message = "periode telah berakhir atau belum dimulai"
+end
+
+courseEnrollmentService -> studentEnt : getAllEnrolledCourses()
+activate studentEnt
+studentEnt -->> courseEnrollmentService : enrolledCourses
+
+courseEnrollmentService -> courseEnrollmentService : checkPrerequisite(courseOffering.course, enrolledCourses)
+
+break prerequisite_not_found_on_enrolled_courses
+    courseEnrollmentService -->> courseSelectionPage : message = "MK prasyarat belum diambil, silakan mengambil prasyarat dahulu"
+end
+
+courseEnrollmentService -> studentEnt : getCoursePlan(semesterID)
+studentEnt -->> courseEnrollmentService : coursePlanSemester
+courseEnrollmentService -> coursePlanEnt : getMaximumCreditLimit()
+activate coursePlanEnt
+coursePlanEnt -->> courseEnrollmentService : maximumCreditLimit
+courseEnrollmentService -> coursePlanEnt : getTotalCredit()
+coursePlanEnt -->> courseEnrollmentService : totalCredit
+
+break courseOffering.course.credit + totalCredit > maximumCreditLimit
+    courseEnrollmentService -->> courseSelectionPage : message = "SKS yang telah diambil telah mencapai batas maksimal"
+end
+
+courseEnrollmentService -> courseEnrollmentService : checkAnyScheduleOverlap(courseOffering, coursePlanSemester)
+
+break any_overlap_found
+    courseEnrollmentService -->> courseSelectionPage : message = "ada jadwal yang konflik, silakan pilih jadwal yang lain"
+end
+
+courseEnrollmentService -> studentEnt : enroll(courseOffering)
+studentEnt -> coursePlanEnt : insert(courseOffering, student.id)
+coursePlanEnt -->> studentEnt : ok
+deactivate coursePlanEnt
+studentEnt -->> courseEnrollmentService : ok
+deactivate studentEnt
+
+courseEnrollmentService -->> courseSelectionPage : message = "MK telah ditambahkan pada KRS"
+
+@enduml
