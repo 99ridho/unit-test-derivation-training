@@ -40,7 +40,7 @@ The files in this repository follow the five-stage training sequence of the prot
 This repository is part of a multi-study empirical research program examining how
 developers and graduate students acquire skills in systematic unit testing. The study
 measures developer experience dimensions — including affect, motivation, cognitive
-load, and self-efficacy — across multiple observation points during protocol adoption.
+development, and self-efficacy — across multiple observation points during protocol adoption.
 
 The training materials here are used as the primary learning artifact in the study.
 
