@@ -51,3 +51,24 @@ context. Participant data is collected under a confidential protocol and is not
 included in this repository.
 
 For more about the foundational protocol, refer to the JNTETI paper linked above.
+
+## AI Agent Validation
+
+The protocol has been formalized in `SKILL.md` and validated through AI agent application. Key findings:
+
+**Quality Comparison:**
+
+- ✅ All protocol stages correctly executed
+- ✅ Artifact quality meets expert standards
+- ✅ **Traceability matrix generated automatically** (not produced manually in training due to overhead)
+
+**Significance:**
+AI validation demonstrates that the protocol's formalization enables complete, rigorous documentation that even expert practitioners conceptually understand but pragmatically omit during manual execution.
+
+**Implications:**
+Tool support could bridge the gap between:
+
+- Conceptual understanding (expert has this)
+- Documentation completeness (expert skips this)
+
+See: [AI validation chat](https://claude.ai/share/8f930541-04b7-4d2b-85cb-8ae74284a797) for detailed comparison.
